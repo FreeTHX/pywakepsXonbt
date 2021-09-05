@@ -1,4 +1,4 @@
-# Py Wake Playstation X (ps3, ps4, ps5) On BlueTooth
+# PyWakePlaystationX (ps3, ps4, ps5) On BlueTooth
 This is a simple Python library to switch on a Sony ps3/ps4/ps5 using Bluetooth
 This version extend the previous one developped for PlayStation 4 only.
 
