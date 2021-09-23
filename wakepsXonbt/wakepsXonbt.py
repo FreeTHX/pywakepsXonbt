@@ -196,7 +196,7 @@ def get_bt_addr() -> dict:
         psXbt_address   = format(msg[2], '02X') + ':' + format(msg[3], '02X') + ':' + format(msg[4], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[6], '02X') + ':' + format(msg[7], '02X') 
     elif dstype == 'dualshock4':
         # Read PS4 et DS BT addresses with USB control transfer GET FEATURE REPORT on 0x12'
-        msg = dev.ctrl_transfer(0xA1, 0x01, 0x0312, 0x0000, 0x0010)        
+        msg = dev.ctrl_transfer(0xA1, 0x01, 0x0312, 0x0000, 16)        
         # Get the DualShock BT Address
         dsbt_address = format(msg[6], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[4], '02X') + ':' + format(msg[3], '02X') + ':' + format(msg[2], '02X') + ':' + format(msg[1], '02X')
         # Get the Playstation 4 BT Address                  
