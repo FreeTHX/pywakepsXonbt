@@ -6,10 +6,11 @@ The main objective is to include it into [Home Assistant](https://www.home-assis
 ## How does it work ?
 The Playstation with bluetooth controler can be simply switched on via :
 - Spoofing a previously paired controler (SixAxis/DualShock3, DualShock4 or DualSense) BDADDR
-- Initiate a HCI connection to the PlayStation BDADDR
+- Initiating a HCI connection to the PlayStation BDADDR
 
 ## Supported Devices
-Support of BDADDR spoofing is limited.  The module tests the adapter support via a ```hci_read_local_version``` python implementation and read the ```manufacturer``` returned value (bytes[5:7])  
+Support of BDADDR spoofing is limited.  
+The module tests the adapter support via a ```hci_read_local_version``` python implementation and read the ```manufacturer``` returned value (bytes[5:7]).  
 Currently supported adapters :
 - Broadcom devices (```manufacturer = 15```)
 
