@@ -7,10 +7,10 @@ ADAPTER_SUFFIX = 'hci'
 ADAPTER_DEFAULT = 0
 DEFAULT_SLEEP_AFTER_CC = 2
 # SONY IDVENDOR / IDPRODUCT
-IDVENDOR_SONY = [ 0x54c ]
-IDPRODUCT_DS = {  'dualshock3' : [0x0268],
-                  'dualshock4' : [0x05c4, 0x09cc],
-                  'dualsense'  : [0x0ce6] }
+IDVENDOR_SONY = [0x54c]
+IDPRODUCT_DS = {'dualshock3': [0x0268],
+                'dualshock4': [0x05c4, 0x09cc],
+                'dualsense': [0x0ce6]}
 # HCI
 HCI_FILTER_SIZE = 14
 HCI_COMMAND_PKT = 0x01
@@ -30,6 +30,7 @@ OCF_INTEL_WRITE_BD_ADDR = 0x0031
 # HCI ioctl
 HCIDEVRESET = 1074022603
 
+
 #####################################
 ## HCI functions
 #####################################
@@ -45,6 +46,7 @@ def get_devid_from_devname(adaptername) -> int:
         adapter = ADAPTER_DEFAULT
     return adapter
 
+
 def hci_open_dev(dev_id: int) -> socket.socket:
     if dev_id < 0:
         # ENODEV
@@ -58,26 +60,31 @@ def hci_open_dev(dev_id: int) -> socket.socket:
     dd.bind((dev_id,))
     return dd
 
+
 def hci_close_dev(bt_socket: socket.socket) -> None:
     bt_socket.close()
 
+
 # Return an uint16 opcode
 def cmd_opcode_pack(ogf: int, ocf: int) -> int:
-    return	((ocf & 0x03ff)|(ogf << 10))
+    return ((ocf & 0x03ff) | (ogf << 10))
+
 
 # Feature Filter
 def get_features_filter(bt_socket: socket.socket) -> bytes:
-    return bt_socket.getsockopt( socket.SOL_HCI, socket.HCI_FILTER, HCI_FILTER_SIZE)
+    return bt_socket.getsockopt(socket.SOL_HCI, socket.HCI_FILTER, HCI_FILTER_SIZE)
+
 
 def set_features_filter(bt_socket: socket.socket, opcode: int = 0) -> None:
-    typeMask   = 1 << HCI_EVENT_PKT
+    typeMask = 1 << HCI_EVENT_PKT
     eventMask1 = (1 << EVT_CMD_COMPLETE) | (1 << EVT_CMD_STATUS)
     eventMask2 = 0
     filter = struct.pack("<LLLHH", typeMask, eventMask1, eventMask2, opcode, 0)
-    bt_socket.setsockopt( socket.SOL_HCI, socket.HCI_FILTER, filter)
+    bt_socket.setsockopt(socket.SOL_HCI, socket.HCI_FILTER, filter)
+
 
 def reset_features_filter(bt_socket: socket.socket, filter: bytes) -> None:
-    bt_socket.setsockopt( socket.SOL_HCI, socket.HCI_FILTER, filter)
+    bt_socket.setsockopt(socket.SOL_HCI, socket.HCI_FILTER, filter)
 
 
 def hci_read_local_bdaddr(bt_socket: socket.socket) -> str:
@@ -87,16 +94,17 @@ def hci_read_local_bdaddr(bt_socket: socket.socket) -> str:
     cmd = struct.pack("<BHB", HCI_COMMAND_PKT, opcode, 0)
     bt_socket.send(cmd)
     pkt = bt_socket.recv(255)
-    reset_features_filter( bt_socket, old_filter)
+    reset_features_filter(bt_socket, old_filter)
     if len(pkt) != 13:
         return None
-    status,raw_bdaddr = struct.unpack("<xxxxxxB6s", pkt)
+    status, raw_bdaddr = struct.unpack("<xxxxxxB6s", pkt)
     if status != 0:
         return None
-    t = [ "%02X" % int(b) for b in raw_bdaddr ]
+    t = ["%02X" % int(b) for b in raw_bdaddr]
     t.reverse()
     bdaddr = ":".join(t)
     return bdaddr
+
 
 def hci_read_local_manufacturer(bt_socket: socket.socket) -> int:
     old_filter = get_features_filter(bt_socket)
@@ -105,18 +113,19 @@ def hci_read_local_manufacturer(bt_socket: socket.socket) -> int:
     cmd = struct.pack("<BHB", HCI_COMMAND_PKT, opcode, 0)
     bt_socket.send(cmd)
     pkt = bt_socket.recv(255)
-    reset_features_filter( bt_socket, old_filter)
+    reset_features_filter(bt_socket, old_filter)
     if len(pkt) != 15:
         return -1
-    status,manu = struct.unpack("<xxxxxxBxxxxHxx", pkt)
+    status, manu = struct.unpack("<xxxxxxBxxxxHxx", pkt)
     if status != 0:
         return -1
     return manu
 
+
 # Only BCM  and CYS( raspberry and others) supported yet)
 def bcm_cys_write_local_bdaddr(bt_socket: socket.socket, dsbtaddr: str) -> bool:
     # prepare bt addr
-    baddrtospoof = bytearray.fromhex(dsbtaddr.replace(":",""))
+    baddrtospoof = bytearray.fromhex(dsbtaddr.replace(":", ""))
     baddrtospoof.reverse()
     baddr_param = bytes(baddrtospoof)
     bt_socket = hci_open_dev(0)
@@ -130,7 +139,7 @@ def bcm_cys_write_local_bdaddr(bt_socket: socket.socket, dsbtaddr: str) -> bool:
     bt_socket.send(cmd)
     pkt = bt_socket.recv(255)
     # reset old filter
-    reset_features_filter( bt_socket, old_filter)
+    reset_features_filter(bt_socket, old_filter)
     if len(pkt) != 7:
         return False
     t_status = struct.unpack("<xxxxxxB", pkt)
@@ -138,10 +147,11 @@ def bcm_cys_write_local_bdaddr(bt_socket: socket.socket, dsbtaddr: str) -> bool:
         return False
     return True
 
+
 #  intel command from https://github.com/thxomas/bdaddr
 def intel_write_local_bdaddr(bt_socket: socket.socket, dsbtaddr: str) -> bool:
     # prepare bt addr
-    baddrtospoof = bytearray.fromhex(dsbtaddr.replace(":",""))
+    baddrtospoof = bytearray.fromhex(dsbtaddr.replace(":", ""))
     baddrtospoof.reverse()
     baddr_param = bytes(baddrtospoof)
     # bt_socket = hci_open_dev(0)
@@ -155,48 +165,51 @@ def intel_write_local_bdaddr(bt_socket: socket.socket, dsbtaddr: str) -> bool:
     bt_socket.send(cmd)
     pkt = bt_socket.recv(255)
     # reset old filter
-    reset_features_filter( bt_socket, old_filter)
+    reset_features_filter(bt_socket, old_filter)
     if len(pkt) != 7:
         return False
     t_status = struct.unpack("<xxxxxxB", pkt)
     if t_status[0] != 0:
         return False
     # intel need a whole reset to make change take effect
-    ret=fcntl.ioctl(bt_socket.fileno(), HCIDEVRESET,0)
+    ret = fcntl.ioctl(bt_socket.fileno(), HCIDEVRESET, 0)
     if ret < 0:
         print("reset device with ret {}".format(ret))
         return False
     return True
+
+
 def hci_cc(bt_socket: socket.socket, ps4btaddr: str) -> None:
-    dstaddr = bytearray.fromhex(ps4btaddr.replace(":",""))
+    dstaddr = bytearray.fromhex(ps4btaddr.replace(":", ""))
     dstaddr.reverse()
     dstaddr_param = bytes(dstaddr)
     #           dst addr +  
     cmd_param = dstaddr_param + bytes([
-        0x18, 0xcc, # the doc said use hcitool cc,so we use 0x18,0xcc as pkt_type
-        0x02,       # pscan_rep_mode
-        0x00,       # pscan_mode (reserved)
-        0x00, 0x00, # clock_offset
-        0x01])     # role_switch
+        0x18, 0xcc,  # the doc said use hcitool cc,so we use 0x18,0xcc as pkt_type
+        0x02,  # pscan_rep_mode
+        0x00,  # pscan_mode (reserved)
+        0x00, 0x00,  # clock_offset
+        0x01])  # role_switch
     old_filter = get_features_filter(bt_socket)
     opcode = cmd_opcode_pack(OGF_LINK_CTL, OCF_CREATE_CONN)
     set_features_filter(bt_socket, opcode)
     cmd = struct.pack("<BHB13s", HCI_COMMAND_PKT, opcode, 13, cmd_param)
     bt_socket.send(cmd)
     # No need to read the feedback
-    reset_features_filter( bt_socket, old_filter)
+    reset_features_filter(bt_socket, old_filter)
     return
 
+
 write_local_bdaddr = {
-    15  : bcm_cys_write_local_bdaddr,
-    305 : bcm_cys_write_local_bdaddr
-    }
+    15: bcm_cys_write_local_bdaddr,
+    305: bcm_cys_write_local_bdaddr
+}
+
 
 def send_magic_packet(adapter,
                       ps4_addr: str,
                       ds4_addr: str,
                       sleep: int = DEFAULT_SLEEP_AFTER_CC) -> bool:
-
     adapterdevid = get_devid_from_devname(adapter)
     bt_socket = hci_open_dev(adapterdevid)
     manufacturer = hci_read_local_manufacturer(bt_socket)
@@ -213,10 +226,11 @@ def send_magic_packet(adapter,
     # Wait a short delay to let the connection be established before reseting the addr
     time.sleep(sleep)
     # Write back the original addr
-    write_local_bdaddr[manufacturer](bt_socket,original_bdaddr)
+    write_local_bdaddr[manufacturer](bt_socket, original_bdaddr)
     hci_close_dev(bt_socket)
 
     return True
+
 
 def get_bt_addr() -> dict:
     import usb.core, usb.util
@@ -226,7 +240,7 @@ def get_bt_addr() -> dict:
     for vendor in IDVENDOR_SONY:
         for dstype in IDPRODUCT_DS.keys():
             for product in IDPRODUCT_DS[dstype]:
-                dev = usb.core.find(idVendor=vendor, idProduct=product )
+                dev = usb.core.find(idVendor=vendor, idProduct=product)
                 if dev is not None:
                     break
             if dev is not None:
@@ -251,25 +265,35 @@ def get_bt_addr() -> dict:
     if dstype == 'dualshock3':
         # Read DS3 BT addresses with USB control transfer GET FEATURE REPORT on 0xf2'
         msg = dev.ctrl_transfer(0xA1, 0x01, 0x3f2, 0x0000, 17)
-        dsbt_address = format(msg[4], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[6], '02X') + ':' + format(msg[7], '02X') + ':' + format(msg[8], '02X') + ':' + format(msg[9], '02X')
+        dsbt_address = format(msg[4], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[6], '02X') + ':' + format(
+            msg[7], '02X') + ':' + format(msg[8], '02X') + ':' + format(msg[9], '02X')
         # Read PlayStation X BT addresses with USB control transfer GET FEATURE REPORT on 0xf5'
         msg = dev.ctrl_transfer(0xA1, 0x01, 0x3f5, 0x0000, 8)
-        psXbt_address   = format(msg[2], '02X') + ':' + format(msg[3], '02X') + ':' + format(msg[4], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[6], '02X') + ':' + format(msg[7], '02X')
+        psXbt_address = format(msg[2], '02X') + ':' + format(msg[3], '02X') + ':' + format(msg[4],
+                                                                                           '02X') + ':' + format(msg[5],
+                                                                                                                 '02X') + ':' + format(
+            msg[6], '02X') + ':' + format(msg[7], '02X')
     elif dstype == 'dualshock4':
         # Read PS4 et DS BT addresses with USB control transfer GET FEATURE REPORT on 0x12'
         msg = dev.ctrl_transfer(0xA1, 0x01, 0x0312, 0x0000, 16)
         # Get the DualShock BT Address
-        dsbt_address = format(msg[6], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[4], '02X') + ':' + format(msg[3], '02X') + ':' + format(msg[2], '02X') + ':' + format(msg[1], '02X')
+        dsbt_address = format(msg[6], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[4], '02X') + ':' + format(
+            msg[3], '02X') + ':' + format(msg[2], '02X') + ':' + format(msg[1], '02X')
         # Get the Playstation 4 BT Address                  
-        psXbt_address = format(msg[15], '02X') + ':' + format(msg[14], '02X') + ':' + format(msg[13], '02X') + ':' + format(msg[12], '02X') + ':' + format(msg[11], '02X') + ':' + format(msg[10], '02X')
+        psXbt_address = format(msg[15], '02X') + ':' + format(msg[14], '02X') + ':' + format(msg[13],
+                                                                                             '02X') + ':' + format(
+            msg[12], '02X') + ':' + format(msg[11], '02X') + ':' + format(msg[10], '02X')
     elif dstype == 'dualsense':
         msg = dev.ctrl_transfer(0xA1, 0x01, 0x309, 0x0000, 20)
-        dsbt_address = format(msg[6], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[4], '02X') + ':' + format(msg[3], '02X') + ':' + format(msg[2], '02X') + ':' + format(msg[1], '02X')
-        psXbt_address = format(msg[15], '02X') + ':' + format(msg[14], '02X') + ':' + format(msg[13], '02X') + ':' + format(msg[12], '02X') + ':' + format(msg[11], '02X') + ':' + format(msg[10], '02X')
+        dsbt_address = format(msg[6], '02X') + ':' + format(msg[5], '02X') + ':' + format(msg[4], '02X') + ':' + format(
+            msg[3], '02X') + ':' + format(msg[2], '02X') + ':' + format(msg[1], '02X')
+        psXbt_address = format(msg[15], '02X') + ':' + format(msg[14], '02X') + ':' + format(msg[13],
+                                                                                             '02X') + ':' + format(
+            msg[12], '02X') + ':' + format(msg[11], '02X') + ':' + format(msg[10], '02X')
 
     # Clean disposal of device
-    usb.util.release_interface(dev,0)
+    usb.util.release_interface(dev, 0)
     if reattach:
         dev.attach_kernel_driver(0)
 
-    return {'type': dstype, 'dsbt_address':dsbt_address, 'psXbt_address':psXbt_address }
+    return {'type': dstype, 'dsbt_address': dsbt_address, 'psXbt_address': psXbt_address}
