@@ -13,6 +13,7 @@ The module tests the adapter support via a ```hci_read_local_manufacturer``` pyt
 Currently supported adapters :
 - Broadcom devices (```manufacturer = 15```)
 - Cypress Semiconductor devices (```manufacturer = 305```)
+- Intel devices (```manufacturer = 2```)
 
 ## Get Bluetooth addresses over USB
 Plug the DualShock3/4 or DualSense controler on your computer using micro USB cable.  
