@@ -1,2 +1,0 @@
-pybluez
-pyusb
