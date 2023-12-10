@@ -15,7 +15,7 @@ DESCRIPTION = 'A Python library to wakeup PlayStation (ps3, ps4, ps5) on BlueToo
 URL = 'https://github.com/FreeTHX/pywakepsXonbt'
 AUTHOR = 'FreeTHX'
 AUTHOR_EMAIL = 'freethx.dev@gmail.com'
-REQUIRED = []
+REQUIRED = ['pyusb']
 
 here = path.abspath(path.dirname(__file__))
 # Get the long description from the README file
