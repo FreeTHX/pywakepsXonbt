@@ -1,3 +1,10 @@
+> [!WARNING]
+> ## ⚠️ This project is deprecated
+>
+> **`pywakeps4onbt`** has been superseded by **[pywakepsx-on-bt](https://github.com/FreeTHX/pywakepsx-on-bt)**, a complete rewrite that unifies PS3, PS4 and PS5 support with proper BD_ADDR spoofing across multiple Bluetooth chipsets.
+>
+> **Please migrate to [`pywakepsx-on-bt`](https://github.com/FreeTHX/pywakepsx-on-bt)** — this repository is no longer maintained.
+
 # PyWakePlaystationX (ps3, ps4, ps5) On BlueTooth
 This is a simple Python library to switch on a Sony ps3/ps4/ps5 using Bluetooth.  This version extends [the previous one developed for PlayStation 4 only](https://github.com/FreeTHX/pywakeps4onbt).
 
